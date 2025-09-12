@@ -3,13 +3,13 @@ let contentScrollPosition = 0;
 Init_UI();
 
 function Init_UI() {
-    renderContacts();
+    renderBookmarks();
     $('#createContact').on("click", async function () {
         saveContentScrollPosition();
         renderCreateContactForm();
     });
     $('#abort').on("click", async function () {
-        renderContacts();
+        renderBookmarks();
     });
     $('#aboutCmd').on("click", function () {
         renderAbout();
@@ -25,10 +25,10 @@ function renderAbout() {
     $("#content").append(
         $(`
             <div class="aboutContainer">
-                <h2>Gestionnaire de contacts</h2>
+                <h2>Gestionnaire de favoris</h2>
                 <hr>
                 <p>
-                    Petite application de gestion de contacts à titre de démonstration
+                    Petite application de gestion de favoris à titre de démonstration
                     d'interface utilisateur monopage réactive.
                 </p>
                 <p>
@@ -40,16 +40,16 @@ function renderAbout() {
             </div>
         `))
 }
-async function renderContacts() {
+async function renderBookmarks() {
     showWaitingGif();
-    $("#actionTitle").text("Liste des contacts");
+    $("#actionTitle").text("Liste des favoris");
     $("#createContact").show();
     $("#abort").hide();
-    let contacts = await API_GetContacts();
+    let bookmarks = await API_GetBookmarks();
     eraseContent();
-    if (contacts !== null) {
-        contacts.forEach(contact => {
-            $("#content").append(renderContact(contact));
+    if (bookmarks !== null) {
+        bookmarks.forEach(contact => {
+            $("#content").append(renderBookmark(contact));
         });
         restoreContentScrollPosition();
         // Attached click events on command icons
@@ -90,34 +90,34 @@ function renderError(message) {
     );
 }
 function renderCreateContactForm() {
-    renderContactForm();
+    renderBookmarkForm();
 }
 async function renderEditContactForm(id) {
     showWaitingGif();
-    let contact = await API_GetContact(id);
+    let contact = await API_GetBookmark(id);
     if (contact !== null)
-        renderContactForm(contact);
+        renderBookmarkForm(contact);
     else
-        renderError("Contact introuvable!");
+        renderError("Favoris introuvable!");
 }
 async function renderDeleteContactForm(id) {
     showWaitingGif();
     $("#createContact").hide();
     $("#abort").show();
-    $("#actionTitle").text("Retrait");
-    let contact = await API_GetContact(id);
+    $("#actionTitle").text("Retirer un favoris");
+    let bookmark = await API_GetBookmark(id);
     eraseContent();
-    if (contact !== null) {
+    if (bookmark !== null) {
         $("#content").append(`
         <div class="contactdeleteForm">
             <h4>Effacer le contact suivant?</h4>
             <br>
-            <div class="contactRow" contact_id=${contact.Id}">
+            <div class="contactRow" contact_id=${bookmark.Id}">
                 <div class="contactContainer">
                     <div class="contactLayout">
-                        <div class="contactName">${contact.Name}</div>
-                        <div class="contactPhone">${contact.Phone}</div>
-                        <div class="contactEmail">${contact.Email}</div>
+                        <div class="contactName">${bookmark.title}</div>
+                        <div class="contactPhone">${bookmark.url}</div>
+                        <div class="contactEmail">${bookmark.categorie}</div>
                     </div>
                 </div>  
             </div>   
@@ -128,37 +128,37 @@ async function renderDeleteContactForm(id) {
         `);
         $('#deleteContact').on("click", async function () {
             showWaitingGif();
-            let result = await API_DeleteContact(contact.Id);
+            let result = await API_DeleteBookmark(bookmark.Id);
             if (result)
-                renderContacts();
+                renderBookmarks();
             else
                 renderError("Une erreur est survenue!");
         });
         $('#cancel').on("click", function () {
-            renderContacts();
+            renderBookmarks();
         });
     } else {
         renderError("Contact introuvable!");
     }
 }
-function newContact() {
-    contact = {};
-    contact.Id = 0;
-    contact.Name = "";
-    contact.Phone = "";
-    contact.Email = "";
-    return contact;
+function newBookmark() {
+    bookmark = {};
+    bookmark.Id = 0;
+    bookmark.title = "";
+    bookmark.url = "";
+    bookmark.categorie = "";
+    return bookmark;
 }
-function renderContactForm(contact = null) {
+function renderBookmarkForm(bookmark = null) {
     $("#createContact").hide();
     $("#abort").show();
     eraseContent();
-    let create = contact == null;
-    if (create) contact = newContact();
+    let create = bookmark == null;
+    if (create) bookmark = newBookmark();
     $("#actionTitle").text(create ? "Création" : "Modification");
     $("#content").append(`
         <form class="form" id="contactForm">
-            <input type="hidden" name="Id" value="${contact.Id}"/>
+            <input type="hidden" name="Id" value="${bookmark.Id}"/>
 
             <label for="Name" class="form-label">Nom </label>
             <input 
@@ -169,18 +169,17 @@ function renderContactForm(contact = null) {
                 required
                 RequireMessage="Veuillez entrer un nom"
                 InvalidMessage="Le nom comporte un caractère illégal" 
-                value="${contact.Name}"
+                value="${bookmark.Name}"
             />
             <label for="Phone" class="form-label">Téléphone </label>
             <input
-                class="form-control Phone"
-                name="Phone"
+                class="form-control Url"
+                name="URL"
                 id="Phone"
-                placeholder="(000) 000-0000"
+                placeholder="https://"
                 required
-                RequireMessage="Veuillez entrer votre téléphone" 
-                InvalidMessage="Veuillez entrer un téléphone valide"
-                value="${contact.Phone}" 
+                RequireMessage="Veuillez entrer un url" 
+                value="${bookmark.Phone}" 
             />
             <label for="Email" class="form-label">Courriel </label>
             <input 
@@ -191,7 +190,7 @@ function renderContactForm(contact = null) {
                 required
                 RequireMessage="Veuillez entrer votre courriel" 
                 InvalidMessage="Veuillez entrer un courriel valide"
-                value="${contact.Email}"
+                value="${bookmark.Email}"
             />
             <hr>
             <input type="submit" value="Enregistrer" id="saveContact" class="btn btn-primary">
@@ -204,14 +203,14 @@ function renderContactForm(contact = null) {
         let contact = getFormData($("#contactForm"));
         contact.Id = parseInt(contact.Id);
         showWaitingGif();
-        let result = await API_SaveContact(contact, create);
+        let result = await API_SaveBookmark(contact, create);
         if (result)
-            renderContacts();
+            renderBookmarks();
         else
             renderError("Une erreur est survenue!");
     });
     $('#cancel').on("click", function () {
-        renderContacts();
+        renderBookmarks();
     });
 }
 
@@ -224,18 +223,18 @@ function getFormData($form) {
     return jsonObject;
 }
 
-function renderContact(contact) {
+function renderBookmark(bookmark) {
     return $(`
-     <div class="contactRow" contact_id=${contact.Id}">
+     <div class="contactRow" contact_id=${bookmark.Id}">
         <div class="contactContainer noselect">
             <div class="contactLayout">
-                <span class="contactName">${contact.Name}</span>
-                <span class="contactPhone">${contact.Phone}</span>
-                <span class="contactEmail">${contact.Email}</span>
+                <span class="contactName">${bookmark.title}</span>
+                <span class="contactPhone">${bookmark.url}</span>
+                <span class="contactEmail">${bookmark.categorie}</span>
             </div>
             <div class="contactCommandPanel">
-                <span class="editCmd cmdIcon fa fa-pencil" editContactId="${contact.Id}" title="Modifier ${contact.Name}"></span>
-                <span class="deleteCmd cmdIcon fa fa-trash" deleteContactId="${contact.Id}" title="Effacer ${contact.Name}"></span>
+                <span class="editCmd cmdIcon fa fa-pencil" editContactId="${bookmark.Id}" title="Modifier ${bookmark.title}"></span>
+                <span class="deleteCmd cmdIcon fa fa-trash" deleteContactId="${bookmark.Id}" title="Effacer ${bookmark.title}"></span>
             </div>
         </div>
     </div>           

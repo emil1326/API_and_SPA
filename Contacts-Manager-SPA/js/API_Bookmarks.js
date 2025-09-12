@@ -1,35 +1,35 @@
-const API_URL_Contacts = "http://localhost:5000/api/contacts";
-function API_GetContacts() {
+const API_URL_Bookmarks = "http://localhost:5000/api/bookmarks";
+function API_GetBookmarks() {
     return new Promise(resolve => {
         $.ajax({
             url: API_URL_Contacts,
-            success: contacts => { resolve(contacts); },
+            success: bookmark => { resolve(bookmark); },
             error: (xhr) => { console.log(xhr); resolve(null); }
         });
     });
 }
-function API_GetContact(contactId) {
+function API_GetBookmark(bookmarkId) {
     return new Promise(resolve => {
         $.ajax({
-            url: API_URL_Contacts + "/" + contactId,
+            url: API_URL_Contacts + "/" + bookmarkId,
             success: contact => { resolve(contact); },
             error: () => { resolve(null); }
         });
     });
 }
-function API_SaveContact(contact, create) {
+function API_SaveBookmark(bookmark, create) {
     return new Promise(resolve => {
         $.ajax({
-            url: API_URL_Contacts + (create ? "" : "/" + contact.Id),
+            url: API_URL_Contacts + (create ? "" : "/" + bookmark.Id),
             type: create ? "POST" : "PUT",
             contentType: 'application/json',
-            data: JSON.stringify(contact),
+            data: JSON.stringify(bookmark),
             success: (/*data*/) => { resolve(true); },
             error: (/*xhr*/) => { resolve(false /*xhr.status*/); }
         });
     });
 }
-function API_DeleteContact(id) {
+function API_DeleteBookmark(id) {
     return new Promise(resolve => {
         $.ajax({
             url: API_URL_Contacts + "/" + id,
