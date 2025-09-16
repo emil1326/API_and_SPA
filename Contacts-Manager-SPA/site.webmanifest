@@ -3,7 +3,7 @@
     "short_name": "Ct Mngr",
     "icons": [
         {
-            "src": "contact-logo.svg",
+            "src": "bookmark_logo.svg",
             "sizes": "any",
             "type": "image/svg+xml",
             "purpose": "any"

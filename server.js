@@ -168,7 +168,7 @@ async function handleContactsServiceRequest(req, res) {
 function validateBookmark(bookmark) {
     if (!('Title' in bookmark)) return 'title is missing';
     if (!('URL' in bookmark)) return 'url is missing';
-    if (!('Categorie' in bookmark)) return 'categorie is missing';
+    if (!('Category' in bookmark)) return 'Category is missing';
     return '';
 }
 async function handleBookmarksServiceRequest(req, res) {
@@ -180,9 +180,15 @@ async function handleBookmarksServiceRequest(req, res) {
         let id = extract_Id_From_Request(req);
         switch (req.method) {
             case 'GET':
-                if (isNaN(id)) {
+                if (req.url.includes("api/bookmarks/Categories")) {
+                    // return all distinct categories in db
+                    const categories = [...new Set(bookmarks.map(b => b.Category))];
+                    res.writeHead(200, { 'content-type': 'application/json' });
+                    res.end(JSON.stringify(categories));
+                } else if (isNaN(id)) {
                     res.writeHead(200, { 'content-type': 'application/json' });
                     res.end(bookmarksJSON);
+
                 } else {
                     let found = false;
                     for (let bookmark of bookmarks) {
@@ -235,7 +241,7 @@ async function handleBookmarksServiceRequest(req, res) {
                             if (storedBookmark != null) {
                                 storedBookmark.Title = modifiedBookmark.Title;
                                 storedBookmark.URL = modifiedBookmark.URL;
-                                storedBookmark.Categorie = modifiedBookmark.Categorie;
+                                storedBookmark.Category = modifiedBookmark.Category;
                                 fs.writeFileSync(bookmarksFilePath, JSON.stringify(bookmarks));
                                 res.writeHead(200);
                                 res.end();
